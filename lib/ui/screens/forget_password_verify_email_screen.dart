@@ -5,20 +5,21 @@ import 'package:task_manager_live_class/ui/widgets/screen_background.dart';
 
 import '../utils/app_colors.dart';
 
-class SignInScreen extends StatefulWidget {
-  const SignInScreen({super.key});
+class ForgetPasswordVerifyEmailScreen extends StatefulWidget {
+  const ForgetPasswordVerifyEmailScreen({super.key});
 
-  static const String name = '/sign-in';
+  static const String name = '/forget-password/verify-email';
 
   @override
-  State<SignInScreen> createState() => _SignInScreenState();
+  State<ForgetPasswordVerifyEmailScreen> createState() =>
+      _ForgetPasswordVerifyEmailScreenState();
 }
 
-class _SignInScreenState extends State<SignInScreen> {
+class _ForgetPasswordVerifyEmailScreenState
+    extends State<ForgetPasswordVerifyEmailScreen> {
   final TextEditingController _emailTextEditingController =
       TextEditingController();
-  final TextEditingController _passwordTextEditingController =
-      TextEditingController();
+
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
@@ -28,7 +29,7 @@ class _SignInScreenState extends State<SignInScreen> {
       body: ScreenBackground(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(24),
             child: Form(
               key: _formKey,
               child: Column(
@@ -37,21 +38,16 @@ class _SignInScreenState extends State<SignInScreen> {
                   const SizedBox(
                     height: 80,
                   ),
-                  Text('Get Started With', style: textTheme.titleLarge),
+                  Text('Your Email Address', style: textTheme.titleLarge),
+                  const SizedBox(height: 4),
+                  Text('A 6 digit of OTP will be send to your email address',
+                      style: textTheme.titleSmall),
                   const SizedBox(height: 24),
                   TextFormField(
                     controller: _emailTextEditingController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
                       hintText: 'Email',
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: _passwordTextEditingController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      hintText: 'Password',
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -61,16 +57,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   ),
                   const SizedBox(height: 48),
                   Center(
-                    child: Column(
-                      children: [
-                        TextButton(
-                          onPressed: () {},
-                          child: const Text('Forget password?'),
-                        ),
-                        const SizedBox(height: 8),
-                        _buildSingUpSection(),
-                      ],
-                    ),
+                    child: _buildSingInSection(),
                   ),
                 ],
               ),
@@ -81,19 +68,22 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  Widget _buildSingUpSection() {
+  Widget _buildSingInSection() {
     return RichText(
       text: TextSpan(
-        text: "Don't have an account? ",
+        text: "Have account? ",
         style:
             const TextStyle(color: Colors.black54, fontWeight: FontWeight.w600),
         children: [
           TextSpan(
-            text: 'Sign up',
+            text: 'Sign in',
             style: const TextStyle(
               color: AppColors.themeColor,
             ),
-            recognizer: TapGestureRecognizer()..onTap = () {},
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                Navigator.pop(context);
+              },
           ),
         ],
       ),
@@ -102,9 +92,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   void dispose() {
-
     _emailTextEditingController.dispose();
-    _passwordTextEditingController.dispose();
     super.dispose();
   }
 }

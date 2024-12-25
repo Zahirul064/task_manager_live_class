@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:task_manager_live_class/ui/sereens/sign_in_screen.dart';
-import 'package:task_manager_live_class/ui/sereens/splash_screen.dart';
+import 'package:task_manager_live_class/ui/screens/forget_password_verify_email_screen.dart';
+import 'package:task_manager_live_class/ui/screens/sign_in_screen.dart';
+import 'package:task_manager_live_class/ui/screens/sign_up_screen.dart';
+import 'package:task_manager_live_class/ui/screens/splash_screen.dart';
 import 'package:task_manager_live_class/ui/utils/app_colors.dart';
 
 class TaskManagerApp extends StatefulWidget {
@@ -13,16 +15,18 @@ class TaskManagerApp extends StatefulWidget {
 class _TaskManagerAppState extends State<TaskManagerApp> {
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-
       theme: ThemeData(
         colorSchemeSeed: AppColors.themeColor,
         textTheme: const TextTheme(
           titleLarge: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.w600,
+          ),
+          titleSmall: TextStyle(
+            color: Colors.grey,
+            fontWeight: FontWeight.w500,
           ),
         ),
         inputDecorationTheme: const InputDecorationTheme(
@@ -56,7 +60,6 @@ class _TaskManagerAppState extends State<TaskManagerApp> {
           ),
         ),
       ),
-
       initialRoute: '/',
       onGenerateRoute: (RouteSettings setting) {
         late Widget widget;
@@ -64,7 +67,12 @@ class _TaskManagerAppState extends State<TaskManagerApp> {
           widget = const SplashScreen();
         } else if (setting.name == SignInScreen.name) {
           widget = const SignInScreen();
+        } else if (setting.name == SignUpScreen.name) {
+          widget = const SignUpScreen();
+        } else if (setting.name == ForgetPasswordVerifyEmailScreen.name) {
+          widget = const ForgetPasswordVerifyEmailScreen();
         }
+
         return MaterialPageRoute(builder: (_) => widget);
       },
     );
