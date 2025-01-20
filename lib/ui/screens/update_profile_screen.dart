@@ -1,57 +1,70 @@
-import 'package:flutter/gestures.dart';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:task_manager_live_class/data/services/network_caller.dart';
 import 'package:task_manager_live_class/data/utils/urls.dart';
-import 'package:task_manager_live_class/ui/utils/app_colors.dart';
+import 'package:task_manager_live_class/ui/controllers/auth_controller.dart';
 import 'package:task_manager_live_class/ui/widgets/centered_circular_progress_indicator.dart';
 import 'package:task_manager_live_class/ui/widgets/screen_background.dart';
 import 'package:task_manager_live_class/ui/widgets/snack_bar_message.dart';
+import 'package:task_manager_live_class/ui/widgets/tm_app_bar.dart';
 
-class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
+class UpdateProfileScreen extends StatefulWidget {
+  const UpdateProfileScreen({super.key});
 
-  static const String name = '/sign-up';
+  static const String name = '/update-profile';
 
   @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
+  State<UpdateProfileScreen> createState() => _UpdateProfileScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   final TextEditingController _emailTEController = TextEditingController();
   final TextEditingController _firstNameTEController = TextEditingController();
   final TextEditingController _lastNameTEController = TextEditingController();
   final TextEditingController _mobileTEController = TextEditingController();
   final TextEditingController _passwordTEController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  bool _signUpInProgress = false;
+  XFile? _pickedImage;
+  bool _updateProfileInProgress = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailTEController.text = AuthController.userModel?.email ?? '';
+    _firstNameTEController.text = AuthController.userModel?.firstName ?? '';
+    _lastNameTEController.text = AuthController.userModel?.lastName ?? '';
+    _mobileTEController.text = AuthController.userModel?.mobile ?? '';
+  }
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
+      appBar: const TMAppBar(
+        fromUpdateProfile: true,
+      ),
       body: ScreenBackground(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(16),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 80),
-                  Text('Join With Us', style: textTheme.titleLarge),
+                  const SizedBox(height: 32),
+                  Text('Update Profile', style: textTheme.titleLarge),
                   const SizedBox(height: 24),
+                  _buildPhotoPicker(),
+                  const SizedBox(height: 8),
                   TextFormField(
+                    enabled: false,
                     controller: _emailTEController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(hintText: 'Email'),
-                    validator: (String? value) {
-                      if (value?.trim().isEmpty ?? true) {
-                        return 'Enter your email';
-                      }
-                      return null;
-                    },
                   ),
                   const SizedBox(height: 8),
                   TextFormField(
@@ -82,7 +95,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     decoration: const InputDecoration(hintText: 'Mobile'),
                     validator: (String? value) {
                       if (value?.trim().isEmpty ?? true) {
-                        return 'Enter your phone number';
+                        return 'Enter your phone no';
                       }
                       return null;
                     },
@@ -92,29 +105,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     controller: _passwordTEController,
                     obscureText: true,
                     decoration: const InputDecoration(hintText: 'Password'),
-                    validator: (String? value) {
-                      if (value?.trim().isEmpty ?? true) {
-                        return 'Enter your password';
-                      }
-                      if (value!.length < 6) {
-                        return 'Enter a password more than 6 letters';
-                      }
-                      return null;
-                    },
                   ),
                   const SizedBox(height: 24),
                   Visibility(
-                    visible: _signUpInProgress == false,
+                    visible: _updateProfileInProgress == false,
                     replacement: const CenteredCircularProgressIndicator(),
                     child: ElevatedButton(
-                      onPressed: _onTapSignUpButton,
+                      onPressed: _onTapUpdateButton,
                       child: const Icon(Icons.arrow_circle_right_outlined),
                     ),
                   ),
-                  const SizedBox(height: 48),
-                  Center(
-                    child: _buildSignInSection(),
-                  )
                 ],
               ),
             ),
@@ -124,65 +124,84 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  void _onTapSignUpButton() {
-    if (_formKey.currentState!.validate()) {
-      _registerUser();
+  Widget _buildPhotoPicker() {
+    return GestureDetector(
+      onTap: _pickImage,
+      child: Container(
+        height: 50,
+        decoration: BoxDecoration(
+            color: Colors.white, borderRadius: BorderRadius.circular(8)),
+        child: Row(
+          children: [
+            Container(
+              height: 50,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: const BoxDecoration(
+                  color: Colors.grey,
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(8),
+                      bottomLeft: Radius.circular(8))),
+              alignment: Alignment.center,
+              child: const Text(
+                'Photo',
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              _pickedImage == null ? 'No item selected' : _pickedImage!.name,
+              maxLines: 1,
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickImage() async {
+    ImagePicker picker = ImagePicker();
+    XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      _pickedImage = image;
+      setState(() {});
     }
   }
 
-  Future<void> _registerUser() async {
-    _signUpInProgress = true;
-    setState(() {});
+  void _onTapUpdateButton() {
+    if (_formKey.currentState!.validate()) {
+      _updateProfile();
+    }
+  }
 
+  Future<void> _updateProfile() async {
+    _updateProfileInProgress = true;
+    setState(() {});
     Map<String, dynamic> requestBody = {
       "email": _emailTEController.text.trim(),
       "firstName": _firstNameTEController.text.trim(),
       "lastName": _lastNameTEController.text.trim(),
       "mobile": _mobileTEController.text.trim(),
-      "password": _passwordTEController.text,
-      "photo": ""
     };
 
+    if (_pickedImage != null) {
+      List<int> imageBytes = await _pickedImage!.readAsBytes();
+      requestBody['photo'] = base64Encode(imageBytes);
+    }
+    if (_passwordTEController.text.isNotEmpty) {
+      requestBody['password'] = _passwordTEController.text;
+    }
+
     final NetworkResponse response = await NetworkCaller.postRequest(
-        url: Urls.registrationUrl, body: requestBody);
-    _signUpInProgress = false;
+        url: Urls.updateProfile, body: requestBody);
+    _updateProfileInProgress = false;
     setState(() {});
     if (response.isSuccess) {
-      _clearTextFields();
-      showSnackBarMessage(context, 'New user registration successful!');
+      _passwordTEController.clear();
     } else {
       showSnackBarMessage(context, response.errorMessage);
     }
-  }
-
-  void _clearTextFields() {
-    _firstNameTEController.clear();
-    _lastNameTEController.clear();
-    _emailTEController.clear();
-    _passwordTEController.clear();
-    _mobileTEController.clear();
-  }
-
-  Widget _buildSignInSection() {
-    return RichText(
-      text: TextSpan(
-        text: "Already have an account? ",
-        style:
-            const TextStyle(color: Colors.black54, fontWeight: FontWeight.w600),
-        children: [
-          TextSpan(
-            text: 'Sign in',
-            style: const TextStyle(
-              color: AppColors.themeColor,
-            ),
-            recognizer: TapGestureRecognizer()
-              ..onTap = () {
-                Navigator.pop(context);
-              },
-          )
-        ],
-      ),
-    );
   }
 
   @override
